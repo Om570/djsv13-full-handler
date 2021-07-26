@@ -4,4 +4,4 @@ This handler isnt perfect yet but better than most handlers till now as this is 
 
 # Help Command
 This handler also has a very good auto sync help menu command. Thanks to a guy from reconlx's server to make this. 
-(my guy u am so sorry i forgot your name hope you forgive me.)
+(my guy i am so sorry i forgot your name hope you forgive me.)
