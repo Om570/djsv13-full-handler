@@ -1,40 +1,28 @@
-
-const {
-  MessageEmbed,
-  Message,
-  Client
-} = require("discord.js");
-const {
-  readdirSync
-} = require("fs");
+const { MessageEmbed, Message, Client } = require("discord.js");
+const { readdirSync } = require("fs");
 const prefix = require("../../config.json").prefix;
 let color = "#36393f";
 
-const create_mh = require('../../functions/menu_help');
+const create_mh = require("../../functions/menu_help");
 
 module.exports = {
   name: "help",
-  aliases: ['h'],
-  emoji: '🚑',
+  aliases: ["h"],
+  emoji: "🚑",
   timeout: 5000,
   description: "Shows all available bot commands, In menu form.",
   /**
-   * 
-   * @param {Client} client 
-   * @param {Message} message 
-   * @param {String} args 
-   * @returns 
+   *
+   * @param {Client} client
+   * @param {Message} message
+   * @param {String} args
+   * @returns
    */
   run: async (client, message, args) => {
-
     let categories = [];
     let cots = [];
 
     if (!args[0]) {
-
-     
-      
-
       const emo = {
         fun: "🎆",
         giveaway: "🎉",
@@ -47,9 +35,9 @@ module.exports = {
         ticket: "🎫",
         counting: "🔢",
         invite: "📱",
-        economy: '💰',
-        owner: ":x:"
-      }
+        economy: "💰",
+        owner: ":x:",
+      };
 
       let ccate = [];
 
@@ -70,9 +58,8 @@ module.exports = {
         cats = {
           name: name,
           value: `\`${prefix}help ${dir.toLowerCase()}\``,
-          inline: true
-        }
-
+          inline: true,
+        };
 
         categories.push(cats);
         ccate.push(nome);
@@ -80,104 +67,117 @@ module.exports = {
 
       const embed = new MessageEmbed()
         .setTitle("Help Menu:")
-        .setDescription(`>>> My prefix is ${prefix}\nUse the menu, or use \`${prefix}help [category]\` to view commands base on their category!`)
+        .setDescription(
+          `>>> My prefix is ${prefix}\nUse the menu, or use \`${prefix}help [category]\` to view commands base on their category!`
+        )
         .addFields(categories)
         .setFooter(
           `Requested by ${message.author.tag}`,
           message.author.displayAvatarURL({
-            dynamic: true
+            dynamic: true,
           })
         )
         .setTimestamp()
-        .setThumbnail(client.user.displayAvatarURL({
-          dynamic: true
-        }))
+        .setThumbnail(
+          client.user.displayAvatarURL({
+            dynamic: true,
+          })
+        )
         .setColor(color);
 
-
       let menus = create_mh(ccate);
-      return message.channel.send({ embeds: [embed], components: menus.smenu }).then((msgg) => {
+      return message.channel
+        .send({ embeds: [embed], components: menus.smenu })
+        .then((msgg) => {
+          const menuID = menus.sid;
 
-        const menuID = menus.sid;
+          const select = async (interaction) => {
+            if (interaction.customId != menuID) return;
 
-        const select = async (interaction) => {
-          if (interaction.customId != menuID) return;
+            let { values } = interaction;
 
-          let {
-            values
-          } = interaction;
+            let value = values[0];
 
-          let value = values[0];
+            let catts = [];
 
-          let catts = [];
+            readdirSync("./commands/").forEach((dir) => {
+              if (dir.toLowerCase() !== value.toLowerCase()) return;
+              const commands = readdirSync(`./commands/${dir}/`).filter(
+                (file) => file.endsWith(".js")
+              );
 
-          readdirSync("./commands/").forEach((dir) => {
-            if (dir.toLowerCase() !== value.toLowerCase()) return;
-            const commands = readdirSync(`./commands/${dir}/`).filter((file) =>
-              file.endsWith(".js")
-            );
+              const cmds = commands.map((command) => {
+                let file = require(`../../commands/${dir}/${command}`);
 
+                if (!file.name) return "No command name.";
 
-            const cmds = commands.map((command) => {
-              let file = require(`../../commands/${dir}/${command}`);
+                let name = file.name.replace(".js", "");
 
-              if (!file.name) return "No command name.";
+                if (client.commands.get(name).hidden) return;
 
-              let name = file.name.replace(".js", "");
+                let des = client.commands.get(name).description;
+                let emo = client.commands.get(name).emoji;
+                let emoe = emo ? `${emo} - ` : "";
 
-              if (client.commands.get(name).hidden) return;
+                let obj = {
+                  cname: `${emoe}\`${name}\``,
+                  des,
+                };
 
+                return obj;
+              });
 
-              let des = client.commands.get(name).description;
-              let emo = client.commands.get(name).emoji;
-              let emoe = emo ? `${emo} - ` : '';
+              let dota = new Object();
 
-              let obj = {
-                cname: `${emoe}\`${name}\``,
-                des
-              }
+              cmds.map((co) => {
+                if (co == undefined) return;
 
-              return obj;
+                dota = {
+                  name: `${cmds.length === 0 ? "In progress." : co.cname}`,
+                  value: co.des ? co.des : "No Description",
+                  inline: true,
+                };
+                catts.push(dota);
+              });
+
+              cots.push(dir.toLowerCase());
             });
 
-            let dota = new Object();
+            if (cots.includes(value.toLowerCase())) {
+              const combed = new MessageEmbed()
+                .setTitle(
+                  `__${
+                    value.charAt(0).toUpperCase() + value.slice(1)
+                  } Commands!__`
+                )
+                .setDescription(
+                  `Use \`${prefix}help\` followed by a command name to get more information on a command.\nFor example: \`${prefix}help ping\`.\n\n`
+                )
+                .addFields(catts)
+                .setColor(color);
 
-            cmds.map(co => {
-              if (co == undefined) return;
+              await interaction.deferUpdate();
 
-              dota = {
-                name: `${cmds.length === 0 ? "In progress." : co.cname}`,
-                value: co.des ? co.des : 'No Description',
-                inline: true,
-              }
-              catts.push(dota)
-            });
-
-            cots.push(dir.toLowerCase());
-          });
-
-          if (cots.includes(value.toLowerCase())) {
-            const combed = new MessageEmbed()
-              .setTitle(`__${value.charAt(0).toUpperCase() + value.slice(1)} Commands!__`)
-              .setDescription(`Use \`${prefix}help\` followed by a command name to get more information on a command.\nFor example: \`${prefix}help ping\`.\n\n`)
-              .addFields(catts)
-              .setColor(color)
-
-            await interaction.deferUpdate();
-
-            return interaction.message.edit({ embeds: [combed], components: menus.smenu })
+              return interaction.message.edit({
+                embeds: [combed],
+                components: menus.smenu,
+              });
+            }
           };
 
-        };
+          const filter = (interaction) => {
+            return (
+              !interaction.user.bot && interaction.user.id == message.author.id
+            );
+          };
 
-        const filter = (interaction) => { return !interaction.user.bot && interaction.user.id == message.author.id };
-
-        const collector = msgg.createMessageComponentCollector({ filter, componentType: "SELECT_MENU" });
-        collector.on("collect", select);
-        collector.on("end", () => null);
-
-      });
-
+          const collector = msgg.createMessageComponentCollector({
+            filter,
+            componentType: "SELECT_MENU",
+          });
+          collector.on("collect", select);
+          collector.on("end", () => null);
+        });
     } else {
       let catts = [];
 
@@ -186,7 +186,6 @@ module.exports = {
         const commands = readdirSync(`./commands/${dir}/`).filter((file) =>
           file.endsWith(".js")
         );
-
 
         const cmds = commands.map((command) => {
           let file = require(`../../commands/${dir}/${command}`);
@@ -197,30 +196,29 @@ module.exports = {
 
           if (client.commands.get(name).hidden) return;
 
-
           let des = client.commands.get(name).description;
           let emo = client.commands.get(name).emoji;
-          let emoe = emo ? `${emo} - ` : '';
+          let emoe = emo ? `${emo} - ` : "";
 
           let obj = {
             cname: `${emoe}\`${name}\``,
-            des
-          }
+            des,
+          };
 
           return obj;
         });
 
         let dota = new Object();
 
-        cmds.map(co => {
+        cmds.map((co) => {
           if (co == undefined) return;
 
           dota = {
             name: `${cmds.length === 0 ? "In progress." : co.cname}`,
-            value: co.des ? co.des : 'No Description',
+            value: co.des ? co.des : "No Description",
             inline: true,
-          }
-          catts.push(dota)
+          };
+          catts.push(dota);
         });
 
         cots.push(dir.toLowerCase());
@@ -234,19 +232,27 @@ module.exports = {
 
       if (cots.includes(args[0].toLowerCase())) {
         const combed = new MessageEmbed()
-          .setTitle(`__${args[0].charAt(0).toUpperCase() + args[0].slice(1)} Commands!__`)
-          .setDescription(`Use \`${prefix}help\` followed by a command name to get more information on a command.\nFor example: \`${prefix}help ping\`.\n\n`)
+          .setTitle(
+            `__${
+              args[0].charAt(0).toUpperCase() + args[0].slice(1)
+            } Commands!__`
+          )
+          .setDescription(
+            `Use \`${prefix}help\` followed by a command name to get more information on a command.\nFor example: \`${prefix}help ping\`.\n\n`
+          )
           .addFields(catts)
-          .setColor(color)
+          .setColor(color);
 
-        return message.channel.send({ embeds: [combed] })
-      };
+        return message.channel.send({ embeds: [combed] });
+      }
 
       if (!command) {
         const embed = new MessageEmbed()
-          .setTitle(`Invalid command! Use \`${prefix}help\` for all of my commands!`)
+          .setTitle(
+            `Invalid command! Use \`${prefix}help\` for all of my commands!`
+          )
           .setColor("RED");
-        return await message.channel.send({embeds: [embed]})
+        return await message.channel.send({ embeds: [embed] });
       }
 
       const embed = new MessageEmbed()
@@ -257,31 +263,31 @@ module.exports = {
         )
         .addField(
           "Aliases:",
-          command.aliases ?
-            `\`${command.aliases.join("` `")}\`` :
-            "No aliases for this command."
+          command.aliases
+            ? `\`${command.aliases.join("` `")}\``
+            : "No aliases for this command."
         )
         .addField(
           "Usage:",
-          command.usage ?
-            `\`${prefix}${command.name} ${command.usage}\`` :
-            `\`${prefix}${command.name}\``
+          command.usage
+            ? `\`${prefix}${command.name} ${command.usage}\``
+            : `\`${prefix}${command.name}\``
         )
         .addField(
           "Command Description:",
-          command.description ?
-            command.description :
-            "No description for this command."
+          command.description
+            ? command.description
+            : "No description for this command."
         )
         .setFooter(
           `Requested by ${message.author.tag}`,
           message.author.displayAvatarURL({
-            dynamic: true
+            dynamic: true,
           })
         )
         .setTimestamp()
         .setColor(color);
-      return await message.channel.send({embeds: [embed]})
+      return await message.channel.send({ embeds: [embed] });
     }
   },
 };

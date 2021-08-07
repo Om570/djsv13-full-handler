@@ -3,6 +3,6 @@
     "prefix": "your prefix here",
     "owner": "your id here",
     "mongoString": "mongo string here",
-    "color": "embed color here only hex else....",
-    "slashtestingguildid": "your slash command guild id"
+    "color": "#ff0000",
+    "guildId": "your slash guild id here"
 }

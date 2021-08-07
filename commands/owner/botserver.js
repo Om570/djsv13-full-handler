@@ -33,13 +33,7 @@ module.exports = {
         data = "[No server found]";
       }
     } catch (err) {
-      const errorlogs = client.channels.cache.get(ERROR_LOGS_CHANNEL);
-
-      message.channel.send(
-        `Whoops, We got a error right now! This error has been reported to Support center!`
-      );
-
-      errorlogs.send(`Error on bs commands!\n\nError:\n\n ${err}`);
+      console.log(err);
     }
   },
 };

@@ -2,7 +2,6 @@ const { Client, Message, MessageEmbed } = require("discord.js");
 const color = require("../../config.json").color;
 const owner = require("../../config.json").owner;
 
-
 module.exports = {
   name: "eval",
   description: `Just eval!`,
@@ -15,7 +14,7 @@ module.exports = {
    * @param {String[]} args
    */
   run: async (client, message, args) => {
-     if (message.author.id != owner) {
+    if (message.author.id != owner) {
       return message.channel.send("Limited to the bot owner only!");
     }
     try {
@@ -35,9 +34,7 @@ module.exports = {
 
       message.channel.send({ embeds: [embed] });
     } catch (err) {
-      message.channel.send(`\`ERROR\` \`\`\`xl\n${err}\n\`\`\``);
+      console.log(err);
     }
-
-
   },
 };
