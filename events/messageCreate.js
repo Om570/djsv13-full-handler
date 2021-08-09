@@ -21,8 +21,9 @@ client.on("messageCreate", async (message) => {
   const args = message.content.slice(p.length).trim().split(/ +/g);
   const cmd = args.shift().toLowerCase();
   if (cmd.length == 0) return;
-  let command = client.commands.get(cmd);
-  if (!command) command = client.commands.get(client.aliases.get(cmd));
+      const command = client.commands.get(cmd.toLowerCase()) || client.commands.get(client.aliases.get(cmd.toLowerCase()));
+
+    if (!command) return;
   if (command) {
     if (!message.member.permissions.has(command.userPerms || []))
       return message.reply({
