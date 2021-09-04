@@ -1,6 +1,6 @@
 const client = require("../index");
 const ms = require("ms");
-const { Collection } = require("discord.js");
+const { Collection, MessageEmbed } = require("discord.js");
 const Timeout = new Collection();
 const config = require("../config.json");
 client.on("messageCreate", async (message) => {
@@ -21,9 +21,11 @@ client.on("messageCreate", async (message) => {
   const args = message.content.slice(p.length).trim().split(/ +/g);
   const cmd = args.shift().toLowerCase();
   if (cmd.length == 0) return;
-      const command = client.commands.get(cmd.toLowerCase()) || client.commands.get(client.aliases.get(cmd.toLowerCase()));
+  const command =
+    client.commands.get(cmd.toLowerCase()) ||
+    client.commands.get(client.aliases.get(cmd.toLowerCase()));
 
-    if (!command) return;
+  if (!command) return;
   if (command) {
     if (!message.member.permissions.has(command.userPerms || []))
       return message.reply({
@@ -41,6 +43,30 @@ client.on("messageCreate", async (message) => {
             { long: true }
           )}\` cooldown.`
         );
+      if (command.ownerOnly && message.author.id != config.owner) {
+        message.reply({
+          embeds: [
+            new MessageEmbed()
+              .setDescription(`Umm... Only the bot owner can use that command.`)
+              .setColor("RED"),
+          ],
+        });
+        return;
+      }
+      if (command.nsfw && !message.channel.nsfw) {
+        message.reply({
+          embeds: [
+            new MessageEmbed()
+              .setTitle("WOAH! NSFW not allowed here!")
+              .setDescription(
+                `Use NSFW commands in a NSFW marked channel (look in channel settings, dummy)`
+              )
+              .setColor("RED")
+              .setImage("https://i.imgur.com/oe4iK5i.gif"),
+          ],
+        });
+        return;
+      }
       command.run(client, message, args);
       Timeout.set(
         `${command.name}${message.author.id}`,
